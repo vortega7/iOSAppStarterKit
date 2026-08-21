@@ -38,9 +38,6 @@ what this kit covers.
 | `legal/terms.html.template`, `privacy.html.template`, `support.html.template` | Hosted-page templates, genericized with `[FILL IN]` placeholders, structurally intact (numbered sections, fair-use clause, contact section). |
 | `LICENSE` | MIT — copy, modify, and reuse any or all of this freely, including commercially. |
 
-Not listed above: `MEMORY_SOURCE_MAP.md`, a private, `.gitignore`d
-maintenance checklist — not part of the published kit.
-
 ## How to use this for a new app
 
 1. Read `LESSONS_LEARNED.md` end to end before writing any code — most items there are cheaper to build in from day one than to retrofit.
