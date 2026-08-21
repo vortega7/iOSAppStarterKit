@@ -1,0 +1,58 @@
+<!--
+  SUPPORT PAGE TEMPLATE.
+  This is App Store Connect's required "Support URL" — not linked from
+  inside the app itself (that's terms.html/privacy.html's job), only
+  from the App Store listing.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Support — [FILL IN: App Name]</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; max-width: 720px; margin: 0 auto; padding: 32px 20px 80px; line-height: 1.55; color: #1a1a1a; }
+  h1 { font-size: 1.6em; margin-bottom: 4px; }
+  h2 { font-size: 1.15em; margin-top: 2em; }
+  section p { margin: 0.75em 0; }
+  a { color: #0066cc; }
+  dt { font-weight: 600; margin-top: 1em; }
+  dd { margin: 0.25em 0 0; color: #333; }
+</style>
+</head>
+<body>
+<h1>Support</h1>
+<p>Help with [FILL IN: App Name], [FILL IN: one-line description of what the app does].</p>
+
+<section>
+<h2>Common Issues</h2>
+<dl>
+  <!-- FILL IN: replace with this app's actual common-issue list. The
+       entries below are the reusable "baseline infrastructure" ones —
+       keep whichever apply, since the paywall/subscription/kill-switch
+       machinery is meant to be reused as-is. -->
+
+  <dt>[FILL IN: this app's core-feature failure mode, e.g. "Nothing happens when I press the button"]</dt>
+  <dd>Check that you have an internet connection. Also check <strong>Settings → [App Name] → [relevant permission]</strong> on your device to make sure [permission] access is allowed.</dd>
+
+  <dt>The paywall shows "Couldn't load subscription details"</dt>
+  <dd>This usually means a temporary network issue reaching the App Store. Tap "Try Again," or check your internet connection and try again in a moment.</dd>
+
+  <dt>I subscribed but the app still shows the paywall</dt>
+  <dd>Try closing and reopening the app. If that doesn't help, open the paywall and tap "Restore Purchases."</dd>
+
+  <dt>I want to cancel my subscription</dt>
+  <dd>Subscriptions are managed entirely through Apple, not within the app: go to <strong>Settings → [your name] → Subscriptions</strong> on your device to view, change, or cancel.</dd>
+
+  <dt>The app is asking me to update</dt>
+  <dd>A newer version is required to continue using the app — tap "Update Now" to go to the App Store, or update manually from the App Store app.</dd>
+</dl>
+</section>
+
+<section>
+<h2>Still Need Help?</h2>
+<p>Contact us at <a href="mailto:[FILL IN: support email]">[FILL IN: support email]</a> and we'll get back to you as soon as we can.</p>
+</section>
+
+</body>
+</html>

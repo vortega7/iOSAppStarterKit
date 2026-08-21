@@ -1,0 +1,198 @@
+# Engineering Standards — [FILL IN: App Name]
+
+These rules apply to **every** change in this repository — a one-line
+tweak and a multi-file feature carry the same bar. Read `ARCHITECTURE.md`
+before touching code; it explains the layering these rules assume.
+
+> Adapted from the `iOSAppStarterKit` starter kit — see that kit's
+> `LESSONS_LEARNED.md` for the specific incidents that motivated several
+> of these rules (particularly Device support and the pre-merge doc/
+> memory check).
+
+## Default to production-grade, regardless of the repo's name or stage
+
+If this repo's name, folder location, or early commit history suggests
+"prototype"/"POC"/"early-stage" (e.g. a leftover working-title
+directory name from before the app had a real identity), **do not infer
+the app's actual maturity or stakes from that naming** — ask, or default
+to treating it as production-bound. A leftover "POC" directory name is
+easy to keep long after an app is real and actively shipping to real
+users; assuming naming implies license to cut corners is a mistake, not
+a safe default. Concretely: don't use "it's early-stage" as a reason to
+skip error handling, edge cases, live/mid-session enforcement, or tests
+— default to the more robust option when two designs are in tension,
+unless told otherwise.
+
+## The standard to write against
+
+Before finishing any change, ask: *would a Senior Staff iOS engineer,
+reading this cold, call it clean — or would they say "this needs a
+rewrite before I'd take it over"?* The target is that any iOS developer
+can be handed this repository at any time and understand it, and safely
+extend it, in a reasonable amount of time with no verbal handoff. That
+means:
+- No dead code. If a property, parameter, or type isn't read/used
+  anywhere, delete it — don't leave it "in case."
+- No God objects. If a View or ViewModel starts doing rendering *and*
+  business logic *and* state-machine orchestration, that's the signal to
+  extract — View renders, ViewModel owns state + decisions.
+- No silent architecture violations. `Presentation/` depends on `Domain/`
+  protocols, never directly on `Data/` concrete types, except at the one
+  composition root (`[FILL IN: App]App.swift` / `[FILL IN: root view]
+  .init`). If a new external dependency (network, disk, a new system
+  framework) is needed, it gets a protocol in `Domain/Protocols/` and a
+  concrete implementation in `Data/` — see `ARCHITECTURE.md`'s protocol
+  list for the pattern. No exceptions for "it's just a small thing."
+- No unexplained magic numbers or arbitrary thresholds — if a value like a
+  timing constant, threshold, or animation parameter isn't self-evident,
+  say in one line why that value, not just what it is.
+- Consistent naming: protocols read as capabilities (gerund/verb-ing,
+  e.g. `AudioRecording`, `RemoteConfiguring`), concrete types are named
+  for their concrete technology (e.g. `AudioRecorder`,
+  `FirebaseRemoteConfigService`). Follow this for anything new.
+
+Equally important — **don't over-engineer past this bar either**. A
+senior reviewer criticizes unnecessary layers and speculative abstraction
+just as readily as sloppiness. See "Why not more layers" in
+`ARCHITECTURE.md`. Abstract exactly the boundaries that benefit (things
+you'd realistically swap or fake in a test), and stop there. If you're
+adding a protocol with exactly one implementation and no plausible
+second one or test need, that's a smell in the other direction.
+
+## Device / platform support
+
+[FILL IN: which platforms this app targets — iPhone only, Universal
+(iPhone+iPad), watchOS, macOS, visionOS, some combination]
+
+Every feature and UI change supports **every targeted platform from the
+first version that ships it** — not platform-A-first with platform-B as
+a later retrofit. (This lesson comes from a real app that added iPad support as a retrofit onto
+an already-iPhone-only app; it took several rounds and caused a real
+iPhone regression along the way — see `LESSONS_LEARNED.md` items #3–#4
+in the starter kit. This rule exists specifically to avoid repeating
+that.)
+- Any behavior that's genuinely specific to one device/platform (not
+  just to an orientation, size class, or measured geometry) must be
+  gated on an explicit device-idiom check (`UIDevice.current
+  .userInterfaceIdiom` on iOS/iPadOS, or the equivalent platform-detection
+  API elsewhere) — never inferred from a geometry/orientation signal
+  like a `GeometryReader`-derived compact/regular check, even where that
+  signal happens to correlate with the target device most of the time.
+- Design and verify layout/behavior for every targeted platform up
+  front.
+- Test coverage must include every device/platform path wherever logic
+  actually branches on it — assert both branches explicitly, not just
+  whichever the simulator/default happens to exercise.
+- Manual/visual verification covers every targeted platform before a UI
+  change is called done.
+
+## Before writing code
+
+For anything beyond a trivial, obviously-scoped fix: **plan first, get
+explicit sign-off, then implement.** This isn't optional process — it's
+what "assume a Senior Staff reviewer" means operationally: think through
+the design, name the tradeoff, before typing. Use plan mode. State root
+causes, not just symptoms, when fixing a bug.
+
+## Testing
+
+- Every non-trivial piece of decision logic (state transitions, data
+  transformations, business rules — the kind of thing that used to be
+  impossible to test when it lived inside a SwiftUI `body`) gets a unit
+  test in `[FILL IN: App]Tests/`, using fakes for every Domain protocol
+  (see `ARCHITECTURE.md`'s Testing section for the pattern).
+- Changing existing logic means updating or adding tests in the same
+  change — never leave tests silently stale or, worse, delete a test
+  instead of fixing what it caught.
+- `xcodebuild test` must pass before a change is considered done. Not
+  "should probably pass" — actually run it.
+- Not everything needs a test (a pure layout tweak doesn't), but if
+  you're unsure whether something is "logic" or "just view code," err
+  toward testing it.
+- Any logic that branches on device idiom (per "Device / platform
+  support" above) gets tests covering every branch.
+- **Test-helper footgun** (see `LESSONS_LEARNED.md` #11): any test
+  helper constructing a type with an injectable dependency (credential
+  store, analytics, remote config, etc.) must either have no default
+  value or default to a **fake**, never to the real, side-effecting
+  implementation. A default that silently falls back to the real
+  Keychain/network/etc. will eventually cause cross-test contamination
+  that's expensive to trace.
+
+## Documentation
+
+- `///` doc comments on every new type, protocol, and non-obvious method
+  — explain *why* a seam exists, not just what a method does. This
+  project deliberately opts out of a general "minimal comments" default:
+  hand-off readiness is the explicit goal here.
+- `ARCHITECTURE.md` gets updated whenever the layering, a major type's
+  responsibility, or the composition root changes — it must stay accurate
+  or it actively misleads the next person who reads it first. Fix it in
+  the *same PR* as the code change that made it stale — "a follow-up
+  cleanup PR" reliably never happens. See "Before merging a PR" below for
+  the enforcement point.
+- `README.md` gets updated whenever setup/run/test instructions change.
+- [FILL IN: any additional docs this app maintains, e.g. a patent/legal
+  disclosure package, a design-system doc, etc. — delete this line if
+  not applicable]
+
+## Git / process
+
+- Never commit directly to `main`. Every change is a branch + PR, even
+  small ones — `main` is always the safe rollback point.
+- Before every commit: `xcodegen generate` then `xcodebuild build`
+  (simulator is fine) — and `xcodebuild test` whenever app or test
+  source changed. No unverified commits.
+- Commit in logically-grouped units a reviewer can follow one at a time
+  (e.g. "extract Domain layer," then "adapt Data layer," rather than one
+  undifferentiated diff).
+- Write commit messages and PR descriptions that explain *why*, not just
+  *what* — the diff already shows what changed.
+
+## Before merging a PR
+
+A branch often accumulates several follow-up commits — bugs found in
+manual/on-device testing, review feedback — before it's actually ready to
+merge (normal and expected). Doc and memory sync must therefore be checked
+against the branch's **full cumulative diff** immediately before merge,
+not assumed from having been checked at some earlier commit — drift
+compounds silently across a multi-commit branch otherwise. This is the
+single required checkpoint for the items below; don't rely on catching
+them mid-branch.
+
+- Does `ARCHITECTURE.md` still accurately describe every new/changed
+  type, protocol, dependency, or composition-root change introduced
+  *anywhere* on this branch — not just its first commit?
+- Same check for `README.md` and any other maintained docs, per
+  Documentation above.
+- Did this branch establish a durable fact a future session — this one
+  resumed later, or an unrelated parallel session on this same project —
+  would need: a design decision, a hard constraint, a user preference, a
+  non-obvious "why"? If so, save it to Claude's cross-session memory
+  before merging. A PR description is visible on GitHub but is *not*
+  something a future Claude Code session reads automatically; memory is
+  the only mechanism that reliably reaches both a resumed session and a
+  separate parallel one. **Remember: this memory is scoped to this
+  project's directory — it will not automatically reach a future,
+  different app's project.** If a lesson is general enough to apply
+  beyond this specific app, consider adding it back to a shared starter
+  kit like the one this file came from.
+- Treat a stale `ARCHITECTURE.md` or an unrecorded durable decision as
+  equivalent in severity to a failing test — the PR isn't done until
+  this is checked, every time, not just when a change "feels big enough."
+
+## Quick self-check before calling a change done
+
+1. Does this respect the Domain/Data/Presentation dependency direction?
+2. Is there anything here a future reader would have to ask someone about
+   to understand — and if so, is that explained in a doc comment or this
+   file?
+3. Did I add or update tests for any logic I touched?
+4. Did `xcodebuild build`/`test` actually run and pass?
+5. Would a Senior Staff engineer's first reaction be "clean," or would
+   they ask "why did you do it this way"? If the honest answer is the
+   latter, that question needs to already be answered in a comment before
+   you call it done.
+6. If this commit is about to be merged (not just pushed as another
+   commit on an open branch), did I run the "Before merging a PR" check
+   above against the branch's full diff?

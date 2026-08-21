@@ -1,0 +1,151 @@
+# XcodeGen project config template.
+# See iOSAppStarterKit/LESSONS_LEARNED.md items #1 and #2 for why the
+# `info.properties` block below is structured this way — every key in
+# it was put there specifically because editing it only in the raw
+# Info.plist file silently reverted on a later `xcodegen generate`, or
+# because App Store Connect rejected an upload without it declared.
+
+name: "[FILL IN: App Name]"
+options:
+  bundleIdPrefix: "[FILL IN: e.g. com.example]"
+  deploymentTarget:
+    iOS: "17.0"   # [FILL IN: adjust for the platforms this app targets]
+
+packages:
+  # [FILL IN] — keep whichever of these this app actually uses; both
+  # are known-good package/version pins for a production app of this
+  # shape.
+  NewRelicAgent:
+    url: https://github.com/newrelic/newrelic-ios-agent-spm
+    from: 7.4.0
+  Firebase:
+    url: https://github.com/firebase/firebase-ios-sdk
+    from: 11.0.0
+
+targets:
+  "[FILL IN: App Name]":
+    type: application
+    platform: iOS
+    sources:
+      - path: "[FILL IN: App Name]"
+        excludes:
+          - "Resources/Info.plist"
+          # [FILL IN, if using local StoreKit Testing — see
+          # docs/subscription-paywall-pattern.md]:
+          # - "Resources/Subscription.storekit"
+      # - path: "[FILL IN: App Name]/Resources/Subscription.storekit"
+      #   buildPhase: none
+    info:
+      path: "[FILL IN: App Name]/Resources/Info.plist"
+      properties:
+        UILaunchScreen: {}
+        CFBundleDisplayName: "[FILL IN: Display Name]"
+        # [FILL IN: any usage-description keys this app's permissions
+        # require — NSMicrophoneUsageDescription, NSCameraUsageDescription,
+        # NSPhotoLibraryUsageDescription, NSLocationWhenInUseUsageDescription,
+        # etc. Each one needs real, specific, user-facing copy explaining
+        # *why* — a generic string risks App Review rejection.]
+        # NSMicrophoneUsageDescription: "[FILL IN]"
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: false
+        # See LESSONS_LEARNED.md #1. Declared here, not just in the raw
+        # Info.plist file, because xcodegen's Info.plist merge does not
+        # reliably round-trip a key that's only present in the base
+        # file — verified the hard way, more than once. Says
+        # the app only uses standard/exempt encryption (HTTPS to
+        # third-party APIs, no custom crypto), which skips the export
+        # compliance prompt on every App Store Connect upload. Change
+        # to `true` (or remove and let Xcode prompt) if this app
+        # actually implements custom encryption.
+        ITSAppUsesNonExemptEncryption: false
+        # Same reasoning as above. CFBundleVersion (the internal build
+        # number) must be bumped for every new App Store Connect
+        # upload — TestFlight rejects a re-upload of a build number
+        # it's already seen, even under the same
+        # CFBundleShortVersionString (the user-facing marketing
+        # version) — but the marketing version only needs to change for
+        # an actual release, not every TestFlight build, which is why
+        # the two are bumped independently. Declaring both here (not
+        # just in the raw Info.plist file) is what makes a build-number
+        # bump actually survive `xcodegen generate` — verify this by
+        # running `xcodegen generate` twice after bumping and diffing
+        # Info.plist.
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "1"
+        # See LESSONS_LEARNED.md #2. Required the moment this app
+        # supports more than a single fixed orientation at runtime (any
+        # landscape mode, iPad Universal support, etc.) — App Store
+        # Connect rejects an upload with no orientations declared here
+        # at all, even if the app's runtime orientation-lock logic
+        # (AppDelegate.supportedInterfaceOrientationsFor: or
+        # equivalent) is correct. This static list should be a
+        # superset of every orientation the app might ever actually
+        # return at runtime; the runtime logic is what narrows it down
+        # moment to moment. Delete the `~ipad` variant if this app is
+        # not Universal.
+        # UISupportedInterfaceOrientations:
+        #   - UIInterfaceOrientationPortrait
+        #   - UIInterfaceOrientationPortraitUpsideDown
+        #   - UIInterfaceOrientationLandscapeLeft
+        #   - UIInterfaceOrientationLandscapeRight
+        # UISupportedInterfaceOrientations~ipad:
+        #   - UIInterfaceOrientationPortrait
+        #   - UIInterfaceOrientationPortraitUpsideDown
+        #   - UIInterfaceOrientationLandscapeLeft
+        #   - UIInterfaceOrientationLandscapeRight
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: "[FILL IN: e.g. com.example.yourapp]"
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1"   # [FILL IN: "1" = iPhone only, "1,2" = Universal iPhone+iPad — decide this from day one, see CLAUDE.md's "Device / platform support"]
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: "[FILL IN: Team ID]"
+        GENERATE_INFOPLIST_FILE: NO
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+      # If Automatic signing can't create/match an "iOS App Store"
+      # distribution profile for this team (a real failure mode: Xcode
+      # can report "does not have permission" even with a valid
+      # account/certificate/profile independently confirmed on the
+      # Developer Portal), pin Release to an explicit manual profile
+      # like this instead. Debug can stay on Automatic — local
+      # device Run/Test is unaffected either way.
+      configs:
+        Release:
+          CODE_SIGN_STYLE: Manual
+          CODE_SIGN_IDENTITY: "Apple Distribution"
+          PROVISIONING_PROFILE_SPECIFIER: "[FILL IN: exact profile name from the Developer Portal]"
+    dependencies: []
+      # [FILL IN, matching whichever packages block entries above are kept]
+      # - package: NewRelicAgent
+      #   product: NewRelic
+      # - package: Firebase
+      #   product: FirebaseRemoteConfig
+  "[FILL IN: App Name]Tests":
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: "[FILL IN: App Name]Tests"
+    settings:
+      base:
+        SWIFT_VERSION: "5.0"
+        GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: "[FILL IN: App Name]"
+schemes:
+  "[FILL IN: App Name]":
+    build:
+      targets:
+        "[FILL IN: App Name]": all
+        "[FILL IN: App Name]Tests": [test]
+    run:
+      config: Debug
+      # [FILL IN, if using local StoreKit Testing — see
+      # docs/subscription-paywall-pattern.md for why this only attaches
+      # via Xcode's own Run/Cmd+R, not `simctl launch` or a Home-screen
+      # relaunch]
+      # storeKitConfiguration: "[FILL IN: App Name]/Resources/Subscription.storekit"
+    test:
+      config: Debug
+      targets:
+        - "[FILL IN: App Name]Tests"
+      # storeKitConfiguration: "[FILL IN: App Name]/Resources/Subscription.storekit"

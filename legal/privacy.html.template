@@ -1,0 +1,104 @@
+<!--
+  PRIVACY POLICY TEMPLATE.
+  This is NOT legal advice and NOT filing-ready — see
+  docs/legal-compliance-checklist.md before publishing. The "Information
+  We Process" table needs to exactly match what App Privacy in App
+  Store Connect declares; keeping the two in sync is a manual step,
+  Apple does not cross-check them for you.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy — [FILL IN: App Name]</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; max-width: 720px; margin: 0 auto; padding: 32px 20px 80px; line-height: 1.55; color: #1a1a1a; }
+  h1 { font-size: 1.6em; margin-bottom: 4px; }
+  h2 { font-size: 1.15em; margin-top: 2em; }
+  .updated { color: #666; font-size: 0.9em; margin-bottom: 2em; }
+  table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+  th, td { text-align: left; padding: 8px; border-bottom: 1px solid #ddd; vertical-align: top; }
+  th { font-size: 0.85em; text-transform: uppercase; color: #666; }
+  section p { margin: 0.75em 0; }
+  a { color: #0066cc; }
+</style>
+</head>
+<body>
+<h1>Privacy Policy</h1>
+<p class="updated">Version 1.0 — Last updated: [FILL IN: date]</p>
+
+<section>
+<h2>1. Scope</h2>
+<p>This Privacy Policy explains how [FILL IN: App Name] (the "App") handles information. It's written to match the App's actual behavior and the privacy details shown on its App Store listing — keep these two in sync manually; App Store Connect does not check this for you.</p>
+</section>
+
+<section>
+<h2>2. Information We Process</h2>
+<p>[FILL IN: does the app have user accounts? If not, keep the line below; if it does, describe the account model instead.]</p>
+<p>The App has no user accounts and does not require you to sign in.</p>
+<table>
+<tr><th>Category</th><th>What happens to it</th></tr>
+<tr><td>[FILL IN: this app's core input, e.g. "Photos/video", "Voice/microphone audio"]</td><td>Sent to [FILL IN: cloud AI provider] for the duration of processing your request. We do not store your [input] ourselves.</td></tr>
+<tr><td>[FILL IN: this app's core output]</td><td>Kept only in the app on your device for the current session, to show you the result. Not stored on our servers (we don't operate any) — [FILL IN: adjust if this app DOES store output server-side, e.g. for a gallery/history feature].</td></tr>
+<tr><td>App configuration</td><td>Fetched from Firebase Remote Config (e.g., feature limits) — doesn't identify you personally.</td></tr>
+<tr><td>Usage analytics, crash/performance data</td><td>Collected via New Relic to help us fix bugs and understand app performance.</td></tr>
+<tr><td>Subscription/purchase status</td><td>Handled entirely by Apple's App Store/StoreKit — we don't receive your payment details.</td></tr>
+</table>
+</section>
+
+<section>
+<h2>3. Who We Share Information With</h2>
+<p>We don't sell your information. It's shared only with the service providers that make the App work:</p>
+<ul>
+<li><strong>[FILL IN: cloud AI provider, e.g. "Google Cloud"]</strong> — receives your [input] to perform [core processing]. Subject to [provider]'s own data processing terms.</li>
+<li><strong>Firebase (Google)</strong> — provides remote app configuration.</li>
+<li><strong>New Relic</strong> — receives app usage and crash/performance data.</li>
+<li><strong>Apple</strong> — processes subscription purchases via the App Store; we never see your payment information.</li>
+<li>[FILL IN: any other subprocessor this app actually uses — list every one; App Store review and Apple's App Privacy questionnaire both expect this to be complete, not aspirational]</li>
+</ul>
+<p>We may also disclose information if required by law or to investigate misuse of the App.</p>
+</section>
+
+<section>
+<h2>4. Your Responsibility for Other People's Information</h2>
+<p>[FILL IN, if this app can capture data about a third party — e.g. another person's voice, image, or location: If you use the App to capture or process someone else's data, you're responsible for making sure you have the consent required by law to do so — see the Terms of Use's consent section. We don't verify this for you. Delete this section if not applicable.]</p>
+</section>
+
+<section>
+<h2>5. International Transfers</h2>
+<p>Our service providers may process information outside the country where you're located, including in the United States.</p>
+</section>
+
+<section>
+<h2>6. Retention</h2>
+<p>We don't store your [input/output] content ourselves[FILL IN: adjust if this app does store content server-side]. Analytics and crash data are retained by New Relic per its standard retention window, primarily to help us diagnose problems, not to build a profile of you.</p>
+</section>
+
+<section>
+<h2>7. Your Rights</h2>
+<p>Depending on where you live, you may have rights to access, correct, or request deletion of personal information we hold about you. [FILL IN: adjust this paragraph based on this app's actual data footprint — an app with no accounts and no server-side content storage can truthfully say "there's generally very little for us to hold"; don't reuse that claim if this app stores more.] For analytics data, contact us at the address below.</p>
+</section>
+
+<section>
+<h2>8. Security</h2>
+<p>We use reasonable measures to protect information in transit to our service providers, but no method of transmission or storage is completely secure.</p>
+</section>
+
+<section>
+<h2>9. Children</h2>
+<p>The App is not intended for children below the age stated in its App Store age rating. If you believe a child has provided us information in violation of this policy, contact us so we can address it.</p>
+</section>
+
+<section>
+<h2>10. Changes to This Policy</h2>
+<p>We may update this policy from time to time. Material changes will be reflected in the app's clickwrap acceptance flow, which will ask you to re-accept before continuing.</p>
+</section>
+
+<section>
+<h2>11. Contact</h2>
+<p>Privacy questions can be directed to <a href="mailto:[FILL IN: support email]">[FILL IN: support email]</a>.</p>
+</section>
+
+</body>
+</html>

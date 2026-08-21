@@ -1,0 +1,304 @@
+# Architecture
+
+This is a right-sized layered architecture, not a maximal one — see
+[Why not more layers](#why-not-more-layers) at the bottom for the
+reasoning behind where the line is drawn. If you're new to this
+codebase, read this file first; it should let you find any given piece
+of behavior without reading the whole project.
+
+> Adapted from the `iOSAppStarterKit` starter kit. Sections marked
+> `[FILL IN]` are placeholders — the *shape* (Domain/Data/Presentation,
+> the composition root, the baseline feature set below) is what's meant
+> to carry over as-is; the specific types/protocols/decisions inside
+> each section are illustrative examples and need to be re-decided for
+> this app, not copied blind.
+
+## Layers
+
+```
+Domain/            Pure Swift + Foundation. No SwiftUI, no networking,
+                    no third-party SDKs. Safe to reuse on any Apple
+                    platform or reason about without a simulator running.
+  Models/           [FILL IN: app-wide value types — the domain
+                     vocabulary of this specific app]
+  Protocols/        The seams this app actually depends on abstractly.
+                     Each protocol should be intentionally minimal — only
+                     what's consumed, nothing speculative. Baseline set
+                     every subscription-based, cloud-API-backed app in
+                     this family tends to need:
+                     - [FILL IN: the core product capability, e.g.
+                       "SpeechTranslating", "ImageGenerating" —
+                       whatever the app's primary cloud AI call is]
+                     - SecureCredentialStoring — Keychain boundary (API
+                       keys, any reinstall-abuse-mitigation timestamps —
+                       see "Reinstall-abuse mitigation" below)
+                     - AnalyticsRecording — monitoring/analytics
+                       boundary (see `docs/new-relic-analytics-setup.md`
+                       in the starter kit for the concrete New Relic
+                       implementation and baseline event taxonomy)
+                     - RemoteConfiguring — remote-config boundary (see
+                       `docs/firebase-remote-config-setup.md`)
+                     - SubscriptionManaging — StoreKit 2 boundary,
+                       hiding `Product`/`Transaction`/`Transaction.updates`
+                       behind Domain-native types
+                     [FILL IN: any additional protocols this app's
+                     product logic needs]
+
+Data/               Concrete implementations of the Domain protocols —
+                    this is the only layer that talks to a network, disk,
+                    the Keychain, or a third-party SDK.
+  [FILL IN: concrete service implementing the core product capability]
+  KeychainCredentialStore          → SecureCredentialStoring
+  [FILL IN: e.g. NewRelicAnalyticsService] → AnalyticsRecording
+  [FILL IN: e.g. FirebaseRemoteConfigService] → RemoteConfiguring
+  [FILL IN: e.g. StoreKitSubscriptionService] → SubscriptionManaging
+                                     (product lookup, purchase, restore,
+                                     and Transaction.updates — see
+                                     `docs/subscription-paywall-pattern.md`
+                                     for the concrete state-machine
+                                     pattern and every StoreKit-API
+                                     gotcha found building it)
+
+Presentation/       SwiftUI. Depends on Domain (protocols + models) and,
+                    at the composition root only, concrete Data/ types.
+  Settings/
+    SettingsStore    @Observable store for every persisted preference.
+                     Takes SecureCredentialStoring, RemoteConfiguring,
+                     and AnalyticsRecording dependencies instead of
+                     talking to the Keychain/remote-config service/
+                     analytics SDK directly. [FILL IN: which
+                     preferences, if any, are centrally managed via
+                     Remote Config rather than user-editable — e.g. an
+                     API key, a usage limit]
+    SettingsView     Renders/edits every other SettingsStore preference.
+                     Pure view. [FILL IN: does this show any read-only
+                     status, e.g. subscription state — a useful pattern
+                     is a read-only "Subscription" section sourced from
+                     SubscriptionStore, so status is answerable from
+                     inside the app without needing a live debug
+                     session against a TestFlight-only install]
+  Subscription/
+    SubscriptionStore    @Observable store for paywall/entitlement
+                         state. See `docs/subscription-paywall-pattern.md`
+                         for the full design (usage metering, mid-session
+                         cutoff behavior, three independent
+                         status-refresh triggers, transaction
+                         de-duplication) — these are non-obvious enough
+                         that they're worth reading in full, not just
+                         inferring from this skeleton.
+    PaywallView          Shown once the free allowance/access is
+                         exhausted. Needs an explicit failure state (not
+                         just a spinner) if product-loading fails — see
+                         `LESSONS_LEARNED.md` #8.
+  UpdateRequired/
+    UpdateRequiredView   Shown instead of the entire rest of the app when
+                         a forced-update kill switch trips — see "Forced-
+                         update kill switch" below. No cancel/dismiss
+                         affordance if that's the intended behavior.
+  Legal/
+    LegalAcceptanceStore   @Observable store for versioned Terms/Privacy
+                           (and any other required consent) acceptance —
+                           see "Legal clickwrap" below.
+    LegalAcceptanceView    Root-swap clickwrap screen.
+  [FILL IN: the app's actual product feature — e.g. Translate/,
+  ImageToVideo/, etc.]
+    [FILL IN: ViewModel]   Owns the feature's state machine and every
+                           business decision. This is where product
+                           logic lives — never inside a View's `body`.
+    [FILL IN: root View]   Screen layout only. Reads the ViewModel's
+                           published state, forwards gestures into it.
+
+App/
+  [FILL IN: App]App      Composition root: builds the one instance of
+                     each store for the app's lifetime, injects each via
+                     `.environment(_:)`. Gates its entire `WindowGroup`
+                     content, in order, on kill-switch → legal
+                     acceptance → main content — see "Forced-update kill
+                     switch" and "Legal clickwrap" below. Starts any
+                     long-running launch tasks (Remote Config sync,
+                     StoreKit transaction stream, periodic status
+                     re-check) once, for the app's lifetime.
+  AppDelegate        Bridged in via `@UIApplicationDelegateAdaptor`
+                     because analytics/crash-reporting SDKs typically
+                     need to be configured as early as possible in
+                     `application(_:didFinishLaunchingWithOptions:)` — no
+                     equivalent SwiftUI-native hook fires early enough.
+                     See `docs/new-relic-analytics-setup.md` for the
+                     exact feature-flag configuration and why each
+                     flag is on/off. Also the place any runtime-togglable
+                     orientation lock lives (`supportedInterfaceOrientationsFor:`)
+                     if the app needs one — see `LESSONS_LEARNED.md` #2
+                     for the static-declaration counterpart this needs
+                     in `project.yml`.
+```
+
+## Device / platform support
+
+[FILL IN — see `CLAUDE.md`'s "Device / platform support" section for
+the standing rule. Document here: which platforms are targeted, the
+concrete `isPad`-style (or equivalent) device-idiom-check pattern used,
+and where it lives.]
+
+### Orientation lock (if the app has any layout mode that needs a non-default orientation)
+
+A reusable pattern for an app where most of the UI is locked to one
+orientation (typically portrait) but one specific mode/screen
+legitimately needs another (e.g. a split-screen or landscape-specific
+layout) — skip this whole subsection if every screen in the app is
+happy with a single fixed orientation everywhere.
+
+**iPhone (or any non-adaptive-multitasking platform)**: keep the
+default fixed-orientation lock everywhere *except* the one mode that
+needs it. A static flag (e.g. `AppDelegate.allowsLandscape`, kept in
+sync with the relevant feature toggle by the composition root) backs
+the orientation-lock delegate method
+(`application(_:supportedInterfaceOrientationsFor:)` on iOS), returning
+the wider orientation mask only while that flag is set. The flag's
+`didSet` should immediately re-query the OS
+(`setNeedsUpdateOfSupportedInterfaceOrientations()`) rather than waiting
+for the next rotation attempt, and — if the special mode is turned off
+while the device is currently held in the now-disallowed orientation —
+actively rotate back
+(`UIWindowScene.requestGeometryUpdate(_:)`), so the device doesn't stay
+sideways showing a layout that was never designed for it.
+
+**iPad (or any platform where users generally expect free rotation)**:
+skip the lock entirely — check the device idiom first in the same
+delegate method and short-circuit to allow every orientation,
+regardless of the iPhone-only flag above. Also skip the forced-rotate-
+back-to-portrait behavior on this platform specifically; it would
+otherwise fight "always allow every orientation" the moment the special
+mode is toggled off. This isn't just cosmetic — a layout that was
+tightly tuned for one orientation on the locked platform may need
+separate tuning to actually look right once the same layout is allowed
+to rotate freely on a platform with more screen space (see
+`docs/subscription-paywall-pattern.md`-adjacent note in
+`LESSONS_LEARNED.md` #3–#4 for what goes wrong if that tuning work
+isn't kept properly scoped to the platform it's meant for).
+
+Remember the static declaration counterpart this needs in
+`project.yml` — see `LESSONS_LEARNED.md` #2. The runtime mechanism
+above and the static `Info.plist` declaration are two separate
+requirements; both are needed.
+
+## [FILL IN: this app's core usage limit / free-tier gating, if any]
+
+[FILL IN — if this app has a free-trial/usage-limit/paywall gate, see
+`docs/subscription-paywall-pattern.md` for the full reusable pattern:
+usage metering (define what counts as "usage" explicitly — e.g. only
+active input-capture time, not processing/playback time), a
+start-of-turn gate plus a live mid-session cutoff, reinstall-abuse
+mitigation via a Keychain-stored grant timestamp, and the Remote-Config-
+timing subtlety in `LESSONS_LEARNED.md` #9. Choose the specific usage
+metric and limit value to match this app's actual cost structure — see
+`LESSONS_LEARNED.md` #13 for how to compute a defensible limit against
+real cloud-API pricing.]
+
+## Forced-update kill switch
+
+[FILL IN, or keep as-is if reusing the pattern verbatim — this one
+generalizes cleanly:]
+
+A remote safety valve independent of App Store review turnaround: two
+Remote Config values, `minimum_app_version` and `app_store_url`. A small
+`AppVersion` Domain type does real `major.minor.patch` comparison (not
+lexical string comparison — `"1.10"` sorts before `"1.9"` as plain
+strings). The comparison is exposed as a pure static function taking
+both versions as arguments, so it's testable without needing to control
+`Bundle.main`.
+
+Gate lives at the **root** of the app's `WindowGroup` content (kill
+switch checked before anything else, since it's unresolvable from inside
+the app), as a plain view swap — not a sheet/`.fullScreenCover`, which
+could carry an interactive-dismiss gesture that undermines "no bypass."
+The block screen has no cancel/dismiss affordance, only an "Update Now"
+button opening `app_store_url`.
+
+Make `isUpdateRequired` a **computed** property, not decided once at
+launch — if the underlying Remote Config sync already re-runs on
+foreground resume, this re-evaluates live too, blocking an
+already-running session on its next foreground resume rather than only
+at the next cold launch. Default `minimumAppVersion` to `"0.0.0"`
+(permissive) until the first successful fetch, so a device that's never
+synced (including a first-ever launch that happens to be offline) is
+never incorrectly blocked.
+
+This has no dependency on StoreKit or the Apple Developer Program — pure
+Remote Config plus a version comparison plus a blocking screen, fully
+testable at any signing tier.
+
+## Legal clickwrap + consent
+
+[FILL IN — see `docs/legal-compliance-checklist.md` and the
+`legal/*.template` files for the concrete content pattern. Architecture
+shape:]
+
+A versioned acceptance gate: a `LegalDocumentVersion` enum with one
+constant per document/consent type (e.g. `.terms`, `.privacy`, and any
+additional one-time consent this app's core feature legally requires —
+e.g. a recording-consent constant for an app with a voice-capture
+feature). Bumping a constant is what forces re-acceptance — compare the
+stored accepted version against the current constant, not a separate
+"needs re-accept" flag.
+
+Terms/Privacy clickwrap extends the kill-switch's view swap to a 3-way
+gate (kill switch → legal acceptance → main content) at the app's root.
+Host the actual legal text externally (Firebase Hosting or equivalent)
+rather than bundling it in the app binary, so it can be updated without
+an app release and so there's one canonical copy shared between every
+in-app link and whatever URL is registered in the App Store listing.
+
+Any additional one-time consent specific to the app's core feature
+(e.g. recording consent for a voice app, location consent for a
+location-based app) should be its own gate, checked at the point the
+feature is first used rather than at launch — shown once, not re-shown
+per use, unless the core interaction model specifically requires
+otherwise (weigh this against real UX cost: gating a rapid, repeated
+interaction behind a fresh consent tap every time will break the
+product for no real legal benefit over a one-time notice that stays
+reachable from Settings).
+
+**Scope note**: legal text is typically scoped to the launch
+jurisdiction(s) at first — [FILL IN: which] — and does not address
+every jurisdiction's requirements (e.g. GDPR Article 27 representative
+for the EU). Revisit before expanding distribution.
+
+## Dependency direction
+
+```
+Presentation  →  Domain  ←  Data
+```
+Data and Presentation both depend on Domain (protocols + models);
+neither depends on the other directly. The composition root
+(`[FILL IN: App]App` / its root view's `init`) is the *only* place
+concrete `Data/` types get named — that's the only file that needs to
+change to swap a vendor or point tests at fakes.
+
+## Testing
+
+`[FILL IN: App]Tests/` has mock implementations of every Domain protocol
+and one focused test file per store/ViewModel. `[FILL IN: the concrete
+Data/ service types]` are deliberately untested directly — the protocol
+is what Domain/Presentation get tested through, not the third-party SDK
+call itself; exercise those manually (StoreKit Testing's simulated
+purchase flows, for example, aren't something `xcodebuild test` can
+drive deterministically — see `docs/subscription-paywall-pattern.md`).
+
+None of the unit-test suite should touch the network, real hardware
+(microphone/camera/location), or the real Keychain — that's the direct
+payoff of depending on protocols instead of concrete types. See
+`LESSONS_LEARNED.md` #11 for the specific footgun to avoid (a test
+helper's default parameter falling back to a real, not fake,
+implementation).
+
+## Why not more layers
+
+[FILL IN — re-derive this for the new app rather than copying a
+previous app's specific reasoning verbatim; the *question* to answer
+is the same: does this app have complex query logic to isolate behind a
+repository, competing data sources to reconcile, or a use case reused
+across multiple entry points? If not, a Repository/UseCase/Interactor
+pyramid is pure overhead — abstract exactly the boundaries that benefit
+(the ones listed in Domain/Protocols/ above), give the View a real
+ViewModel so business logic isn't trapped in SwiftUI `body` code, and
+stop there.]

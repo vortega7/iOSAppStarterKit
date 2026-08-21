@@ -1,0 +1,142 @@
+<!--
+  TERMS OF USE TEMPLATE.
+  This is NOT legal advice and NOT filing-ready. Every [FILL IN] marker
+  needs real content specific to the new app; every clause needs review
+  by a real lawyer licensed in the governing jurisdiction before this is
+  published, per docs/legal-compliance-checklist.md.
+  Structure (numbered sections, fair-use clause, contact) is what's
+  meant to carry over; the specific legal positions here are examples
+  and were themselves only reviewed by an AI, not counsel.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Terms of Use — [FILL IN: App Name]</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; max-width: 720px; margin: 0 auto; padding: 32px 20px 80px; line-height: 1.55; color: #1a1a1a; }
+  h1 { font-size: 1.6em; margin-bottom: 4px; }
+  h2 { font-size: 1.15em; margin-top: 2em; }
+  .updated { color: #666; font-size: 0.9em; margin-bottom: 2em; }
+  section p { margin: 0.75em 0; }
+  a { color: #0066cc; }
+</style>
+</head>
+<body>
+<h1>Terms of Use</h1>
+<p class="updated">Version 1.0 — Last updated: [FILL IN: date]</p>
+
+<section>
+<h2>1. Agreement to Terms</h2>
+<p>By downloading, installing, accessing, or using [FILL IN: App Name] (the "App"), you agree to be bound by these Terms of Use. If you do not agree, do not download, install, access, or use the App.</p>
+<p>This agreement is between you and the developer identified as the "Seller" in this app's App Store listing ("Developer," "we," or "us") only, and not with Apple. Apple is not responsible for the App or its content, maintenance, support, warranties, or any claims relating to it, except as required by applicable law.</p>
+</section>
+
+<section>
+<h2>2. Eligibility</h2>
+<p>You represent that you have the legal capacity to enter into this agreement. If you use the App on behalf of a company or other entity, you represent that you have authority to bind that entity to these Terms.</p>
+</section>
+
+<section>
+<h2>3. License Grant</h2>
+<p>Subject to your compliance with these Terms, we grant you a limited, non-exclusive, non-transferable, revocable license to use the App for lawful personal purposes on Apple-branded devices you own or control, as permitted by Apple's usage rules.</p>
+</section>
+
+<section>
+<h2>4. Fair Use; Usage Limits</h2>
+<p>The App is intended for good-faith personal use. Excessive use — currently defined as more than [FILL IN: threshold, e.g. "120 minutes of cumulative usage"] in a calendar month — may be limited, including by lowering performance, to maintain service quality and availability for all users. We may adjust this threshold at any time.</p>
+<!-- See iOSAppStarterKit/LESSONS_LEARNED.md #13 for how to derive a
+     defensible threshold from this app's actual cloud-API cost
+     structure before filling this in — don't guess a round number. -->
+</section>
+
+<section>
+<h2>5. Your Responsibility</h2>
+<p>You are solely responsible for your use of the App, and for determining whether that use is lawful in your location, the location of any other person involved, and any location where content is stored, sent, or accessed.</p>
+</section>
+
+<!--
+  Section 6 below (a "Consent to Record/Capture and Process..." style
+  section) is specific to an app that captures another person's
+  voice/likeness/data via the device. KEEP a version of this
+  section if the new app captures anything about a third party (a
+  photo/video of another person, another person's voice, location data
+  shared with another person, etc.) — the "you are solely responsible
+  for obtaining consent from every affected third party" framing is the
+  reusable part. DELETE this section if the app only ever processes the
+  user's own content/data with no third-party-capture element at all.
+-->
+<section>
+<h2>6. Consent to [FILL IN: e.g. "Capture and Process Your Content", or delete this section if not applicable]</h2>
+<p>The App captures, processes, [FILL IN: and may temporarily store — describe what], in order to deliver [FILL IN: core feature]. <strong>[FILL IN, if the app can capture data about a third party — e.g. another person's voice, image, or location: Before using any capture feature, you must obtain any notice, permission, or consent required by law from every person whose data will be captured, processed, or stored through the App.]</strong></p>
+<p>[FILL IN: jurisdiction-specific consent-law notes, if applicable — e.g. one-party vs. all-party recording-consent law, biometric-data statutes like Illinois BIPA if the app processes voiceprints/faceprints]</p>
+<p>These Terms currently address use of the App within [FILL IN: launch jurisdiction(s), e.g. "the United States and Canada"]. We do not represent that use of the App is lawful in any other country or for any particular purpose.</p>
+</section>
+
+<section>
+<h2>7. Accuracy Disclaimer; No Critical Use</h2>
+<p>The App may produce inaccurate, incomplete, delayed, or [FILL IN: app-specific quality caveat] output, affected by [FILL IN: factors specific to this app's core feature]. Review output independently before relying on it.</p>
+<p>The App is not intended for emergency, medical, legal, immigration, or other situations where inaccurate output could cause serious harm.</p>
+</section>
+
+<section>
+<h2>8. Prohibited Uses</h2>
+<p>You must not use the App for any unlawful, harmful, harassing, discriminatory, or infringing purpose[FILL IN: add app-specific prohibited uses, e.g. "including unauthorized recording or surveillance" for a voice/camera app, or "generating deepfake/impersonation content without consent" for an image/video-generation app].</p>
+</section>
+
+<section>
+<h2>9. Your Content</h2>
+<p>You represent that you own or control all rights necessary to submit and process any [FILL IN: content type] you provide through the App, and that doing so does not violate anyone else's rights.</p>
+</section>
+
+<section>
+<h2>10. No Warranty</h2>
+<p>TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE APP IS PROVIDED "AS IS" AND "AS AVAILABLE," WITHOUT WARRANTIES OF ANY KIND, WHETHER EXPRESS, IMPLIED, OR STATUTORY, INCLUDING WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, ACCURACY, OR NON-INFRINGEMENT.</p>
+</section>
+
+<section>
+<h2>11. Limitation of Liability</h2>
+<p>TO THE MAXIMUM EXTENT PERMITTED BY LAW, WE WILL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES ARISING FROM YOUR USE OF THE APP.</p>
+<p>OUR TOTAL LIABILITY FOR ANY CLAIM RELATING TO THE APP WILL NOT EXCEED THE GREATER OF THE AMOUNT YOU PAID FOR THE APP IN THE 12 MONTHS BEFORE THE CLAIM, OR US$50.</p>
+<p>Nothing in these Terms excludes liability, or limits any consumer right, that cannot be excluded or limited under applicable law.</p>
+</section>
+
+<section>
+<h2>12. Release</h2>
+<p>TO THE MAXIMUM EXTENT PERMITTED BY LAW, YOU RELEASE US FROM ANY CLAIMS ARISING FROM YOUR USE OR MISUSE OF THE APP[FILL IN: add app-specific release language matching section 6/8's risk areas], OR ANY DISPUTE BETWEEN YOU AND A THIRD PARTY CONNECTED TO CONTENT YOU PROCESSED THROUGH THE APP.</p>
+</section>
+
+<section>
+<h2>13. Arbitration; Waiver of Jury Trial</h2>
+<p>PLEASE READ THIS SECTION CAREFULLY. To the maximum extent permitted by applicable law, any dispute arising from these Terms or the App will be resolved by final, binding individual arbitration, except that either party may bring a qualifying claim in small claims court. By accepting these Terms, you and we waive the right to a jury trial, except where such a waiver is prohibited by law.</p>
+<p>Enforceability of arbitration clauses varies by jurisdiction; this section applies only to the extent permitted where you live.</p>
+</section>
+
+<section>
+<h2>14. Class Action Waiver</h2>
+<p>To the maximum extent permitted by law, claims may be brought only on an individual basis, not as part of any class, collective, or representative action.</p>
+</section>
+
+<section>
+<h2>15. Suspension and Termination</h2>
+<p>We may suspend or terminate your access to the App at any time, for any reason, including suspected misuse or violation of these Terms.</p>
+</section>
+
+<section>
+<h2>16. Governing Law</h2>
+<p>These Terms are governed by the laws of [FILL IN: governing jurisdiction — get real counsel confirmation, not just a default choice], without regard to conflict-of-laws principles, except where mandatory local consumer law requires otherwise.</p>
+</section>
+
+<section>
+<h2>17. Entire Agreement; Severability</h2>
+<p>These Terms, together with our <a href="/privacy.html">Privacy Policy</a>, are the entire agreement between you and us regarding the App. If any provision is found unenforceable, the rest remains in effect.</p>
+</section>
+
+<section>
+<h2>18. Contact</h2>
+<p>Questions about these Terms can be directed to <a href="mailto:[FILL IN: support email]">[FILL IN: support email]</a>.</p>
+</section>
+
+</body>
+</html>
