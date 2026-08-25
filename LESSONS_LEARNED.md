@@ -246,9 +246,44 @@ Service or enforcing it in code.
 Auth propagation delay on a freshly created API key, the standard
 `~/.appstoreconnect/private_keys/` directory requirement, the
 `provisioningProfiles` map required for manual signing style in
-`ExportOptions.plist`, and the non-obvious fact that adding a build to
-an External Testers group does **not** itself trigger beta review — a
-second, explicit API call is required.
+`ExportOptions.plist`, the non-obvious fact that adding a build to an
+External Testers group does **not** itself trigger beta review (a
+second, explicit API call is required), and — resubmitting a
+*rejected* App Store review — creating a new `reviewSubmission` fails
+outright (the app version stays claimed by the original one, which
+can't be deleted via the API), and even resubmitting the *original*
+submission via `PATCH .../reviewSubmissions/{id}` can 409 indefinitely
+after a build swap until you use the App Store Connect **web UI**'s
+per-item "Edit" affordance on the specific rejected item — the public
+API doesn't appear to expose an equivalent per-item action.
+
+---
+
+## 16. Auto-renewable subscriptions: two App Store Review requirements to build in from day one, not retrofit after a rejection
+
+**Rule**: the subscription's title, length, price, and functional links
+to the Privacy Policy *and* Terms of Use must be visible **directly in
+the purchase flow screen itself** — a Settings "Legal" section with the
+same links elsewhere in the app does not satisfy this (Guideline
+3.1.2(c)). If the app uses Apple's Standard EULA (no Custom EULA
+configured), the App Store Description also needs an actual clickable
+Terms of Use URL — prose like "see our Terms" with no URL does not
+count as a functional link.
+
+**Rule**: the purchase flow must be reachable **without needing to
+exhaust any usage limit first** (Guideline 2.1(b)) — App Review needs
+to locate and test the in-app purchase in a reasonable session. A
+paywall that only appears reactively, once a free allowance runs out,
+is not practically testable. Add a direct entry point (e.g. a
+"Subscribe" row in Settings, shown whenever the user isn't already
+subscribed) from the first version that ships a paywall.
+
+Both are pure UI additions, not changes to entitlement/limit-checking
+logic — cheap to build in from the start, and a full review-cycle cost
+to retrofit after a rejection (confirmed the hard way: a real submission
+was rejected for both of these at once). See
+`docs/subscription-paywall-pattern.md`'s "App Store Review requirements
+for the purchase flow" for the full detail.
 
 ---
 

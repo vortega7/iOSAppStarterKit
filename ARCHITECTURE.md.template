@@ -194,6 +194,24 @@ metric and limit value to match this app's actual cost structure — see
 `LESSONS_LEARNED.md` #13 for how to compute a defensible limit against
 real cloud-API pricing.]
 
+### App Store Review requirements for the purchase flow
+
+If this app has an auto-renewable subscription, two requirements are
+easy to miss because the app *works* without them and they only surface
+once a real reviewer tries to test the purchase — see
+`LESSONS_LEARNED.md` #16 for the full detail, confirmed the hard way via
+a real rejection (Guidelines 3.1.2(c) and 2.1(b)):
+- The subscription's title, length, price, and functional Privacy
+  Policy/Terms of Use links must be visible **directly in the purchase
+  flow view itself**, not just reachable elsewhere in the app.
+- The purchase flow must be reachable **without needing to exhaust any
+  usage limit first** — a Settings-level "Subscribe" entry point (or
+  equivalent), not only a reactive paywall.
+
+Both fixes are UI-only — no change to entitlement/limit-checking logic.
+Build both in from the app's first version that ships a paywall, not as
+a post-rejection fix.
+
 ## Forced-update kill switch
 
 [FILL IN, or keep as-is if reusing the pattern verbatim — this one

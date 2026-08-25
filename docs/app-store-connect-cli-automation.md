@@ -219,6 +219,54 @@ curl -s -X PATCH \
   "https://api.appstoreconnect.apple.com/v1/betaBuildLocalizations/<LOCALIZATION_ID>"
 ```
 
+## Resubmitting a *rejected* app version for full App Store review
+
+Different from the TestFlight beta-review flow in Steps 7-8 above — for
+App Store review, a rejection leaves the app version, the subscription,
+and the subscription group all as items inside the *same*
+`reviewSubmission` (state `UNRESOLVED_ISSUES`), each individually
+either `READY_FOR_REVIEW` or `REJECTED`. Once you've fixed the app and
+uploaded a new build:
+
+```bash
+# 1. Attach the new build to the app version:
+curl -s -X PATCH \
+  -H "Authorization: Bearer $JWT" -H "Content-Type: application/json" \
+  -d '{"data":{"type":"builds","id":"<NEW_BUILD_ID>"}}' \
+  "https://api.appstoreconnect.apple.com/v1/appStoreVersions/<VERSION_ID>/relationships/build"
+
+# 2. Try resubmitting the *original* reviewSubmission (not a new one):
+curl -s -X PATCH \
+  -H "Authorization: Bearer $JWT" -H "Content-Type: application/json" \
+  -d '{"data":{"type":"reviewSubmissions","id":"<ORIGINAL_SUBMISSION_ID>","attributes":{"submitted":true}}}' \
+  "https://api.appstoreconnect.apple.com/v1/reviewSubmissions/<ORIGINAL_SUBMISSION_ID>"
+```
+
+**Gotcha hit for real, unresolved on the API side**: creating a *new*
+`reviewSubmission` to resubmit fails outright — the app version stays
+claimed by the original submission (`STATE_ERROR.ITEM_PART_OF_ANOTHER_SUBMISSION`),
+and `reviewSubmissions` doesn't support `DELETE` via the API at all
+(only CREATE/GET/UPDATE) — an accidentally-created empty submission can
+only be discarded from the **web UI**, not undone via the API. Resubmit
+the *original* submission instead (step 2 above).
+
+That PATCH itself then kept failing for 20+ minutes with `409
+STATE_ERROR: "Version is not ready to be submitted yet, please try
+again later"`, even with the new build correctly attached and `VALID`.
+**What actually worked**: not waiting longer, and not a Resolution
+Center reply — the App Store Connect **web UI** has an **"Edit" button
+directly on the specific rejected item** (in the submission's "Items
+Submitted" list). Opening it, confirming the new build is attached
+inside that view, and clicking the page's own "Update Review" button
+resolved it immediately. The likely explanation: the top-level PATCH
+above only ever touches the `reviewSubmission`'s own `submitted` flag —
+it never transitions the individual `REJECTED` `reviewSubmissionItem`
+for the app version. The UI's per-item edit flow evidently does that
+transition as part of confirming the new build; **the public API does
+not appear to expose an equivalent per-item action**. If the
+resubmission PATCH keeps 409ing after a build swap, stop polling it and
+resubmit through the web UI's per-item "Edit" affordance instead.
+
 ## Environment gotchas encountered doing all of the above
 
 See `LESSONS_LEARNED.md` #15 for the full list (disk space exhaustion

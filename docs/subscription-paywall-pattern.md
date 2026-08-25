@@ -44,6 +44,35 @@ example choice below is universal:
   Keychain-stored timestamp plus a generous cooldown window can be the
   entire mechanism.
 
+## App Store Review requirements for the purchase flow — not optional, build these in from day one
+
+Two real App Store rejections' worth of requirements (Guidelines
+3.1.2(c) and 2.1(b)), confirmed the hard way on a shipped app. Both are
+easy to miss because the app *works* without them — they only surface
+once a real reviewer tries to test the purchase:
+
+- **The subscription's title, length, price, and functional links to
+  the Privacy Policy *and* Terms of Use must be visible directly in the
+  purchase flow screen itself** — not just reachable elsewhere in the
+  app (a Settings "Legal" section with the same links does **not**
+  satisfy this; the paywall view needs its own links too). If the app
+  uses Apple's Standard EULA (no Custom EULA configured in App Store
+  Connect), the App Store **Description** also needs a real, clickable
+  Terms of Use URL — plain-text prose like "see our Terms" with no
+  actual URL does not count as a functional link.
+- **The purchase flow must be reachable without needing to exhaust any
+  usage limit first.** A paywall that only appears reactively (once a
+  free allowance runs out) is not something App Review can practically
+  test — add a direct entry point (e.g. a "Subscribe" row in Settings,
+  visible whenever the user isn't already subscribed, that opens the
+  paywall directly) from the first version that ships a paywall, not as
+  a fix after a rejection.
+
+Both of these are pure UI additions — they don't change any entitlement/
+limit-checking logic, just where the purchase screen is reachable from
+and what it displays. Cheap to build in from the start; expensive to
+retrofit after a rejection costs a review cycle.
+
 ## Architecture
 
 - `SubscriptionManaging` (Domain protocol) hides StoreKit 2
