@@ -225,8 +225,20 @@ Different from the TestFlight beta-review flow in Steps 7-8 above — for
 App Store review, a rejection leaves the app version, the subscription,
 and the subscription group all as items inside the *same*
 `reviewSubmission` (state `UNRESOLVED_ISSUES`), each individually
-either `READY_FOR_REVIEW` or `REJECTED`. Once you've fixed the app and
-uploaded a new build:
+either `READY_FOR_REVIEW` or `REJECTED`.
+
+**Gotcha hit for real, while diagnosing a rejection**: a resource's own
+`state` field (e.g. a subscription's `state: READY_TO_SUBMIT`) is a
+*rolling, current* value — it resets once a submission concludes
+(approved or rejected), it does **not** tell you whether that resource
+was actually included in a *past* submission. Don't use it to answer
+"was X ever reviewed" — that produced a real misdiagnosis (concluding a
+subscription was never submitted for review, when it genuinely had
+been, three items deep in the original submission). The reliable way to
+check is the actual `reviewSubmission`'s items list for the submission
+in question, not a standalone resource's current `state`.
+
+Once you've fixed the app and uploaded a new build:
 
 ```bash
 # 1. Attach the new build to the app version:

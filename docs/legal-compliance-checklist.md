@@ -31,11 +31,21 @@ have a solid skeleton but real, substantive gaps — check for these
 specifically on review:
 
 - **No named subprocessors** — a generic draft often doesn't name the
-  actual third-party services the app uses. The Privacy Policy needs to
-  explicitly list every one (cloud AI provider, remote-config provider,
-  analytics provider, etc.) — this is what Apple's own App Privacy
-  questionnaire in App Store Connect actually requires, and the two
-  need to actually match.
+  actual third-party services the app uses. Decide explicitly whether
+  the Privacy Policy names each one specifically (cloud AI provider,
+  remote-config provider, analytics provider, etc.) or describes them
+  generically ("a cloud translation-processing provider") — this is a
+  GDPR/CCPA-style "categories of recipients" transparency judgment call,
+  **not** something Apple's App Privacy questionnaire in App Store
+  Connect requires either way (a claim worth correcting if you see it
+  asserted elsewhere: that questionnaire — the "nutrition label" — asks
+  about data *types and purposes* you collect, not vendor names, and is
+  a separate mechanism from the Privacy Policy text entirely). Named
+  vendors are common in voice/transcription apps specifically, since
+  privacy-conscious users in that category tend to want to know exactly
+  which infrastructure touches their voice recordings — but weigh that
+  against any competitive-concealment concern for your product, and
+  revisit the decision once the app has real, meaningful traffic.
 - **Biometric/voiceprint law**, if the app processes voice or face data
   at all — e.g. Illinois' BIPA (private right of action, statutory
   damages per violation) wasn't addressed with any specificity in the
@@ -46,6 +56,19 @@ specifically on review:
   distinct from the in-app clickwrap) often isn't mentioned in a generic
   draft at all — it's a manual App Store Connect configuration step,
   separate from anything in the codebase, and easy to forget.
+- **The App Store Description itself must not misrepresent data
+  handling** — checked separately from the Privacy Policy/legal text,
+  since App Review reads the public Description too. Hit for real: a
+  Description claimed "your audio never leaves your phone" while the
+  app actually sent it to a third-party cloud AI provider — an
+  unrelated but real misrepresentation caught while fixing a different
+  rejection. If App Review's questionnaire asks whether any data is
+  shared with a third-party AI and the honest answer is yes, say so
+  factually in the Notes/Resolution Center reply, and grep your own
+  Description/marketing copy for any absolute claim ("never leaves your
+  device," "100% private," "no data collected") before submitting —
+  those are exactly the claims most likely to silently drift out of
+  sync with what the app actually does as it evolves.
 
 ## Clauses worth pushing back on in a generic/aggressive draft
 

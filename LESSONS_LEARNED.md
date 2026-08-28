@@ -368,3 +368,35 @@ destination in Xcode — the plain iOS Simulator doesn't catch it).
 every sheet presentation on an actual Mac destination before shipping**,
 not just iPhone/iPad — or disable Mac availability in App Store Connect
 until that verification happens.
+
+---
+
+## 19. Two App Store Connect settings to double-check immediately after your first approval, not assume are right
+
+Hit for real, both on the same day a first version went live:
+
+- **App download price**: if the monetization model is free-download +
+  subscription, confirm the app's own price tier is actually **Free**
+  in Pricing and Availability before submitting, not just the
+  subscription's price. Getting this backwards charges every user
+  up-front *and then* still shows them the subscription paywall — a
+  double-charge that's easy to not notice while testing your own
+  account (which typically doesn't get charged, or already owns the
+  app). This is a separate price schedule from the in-app subscription
+  price; fixing the subscription doesn't fix this.
+- **Age rating**: the Age Ratings questionnaire's *calculated* rating
+  (from your actual answers) can be silently overridden by a manual
+  "Override to Higher/Lower Age Rating" toggle later in the same
+  questionnaire — easy to set by mistake while clicking through, and it
+  takes visible precedence over the calculated value with no obvious
+  warning. Re-open the questionnaire after submitting and confirm the
+  *displayed* rating matches what the content actually warrants, not
+  just what you intended to answer. A wrong rating fix doesn't apply
+  retroactively — it only reaches the store with the next version's
+  approval, so catching it before the first submission is materially
+  cheaper than after.
+
+Neither mistake is caught by App Review itself (both are App Store
+Connect metadata, not app behavior) — verify both explicitly right
+before your first submission, and again right after approval while the
+listing is still fresh in mind.
