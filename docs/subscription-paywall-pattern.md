@@ -82,10 +82,14 @@ retrofit after a rejection costs a review cycle.
   boundary in this app family.
 - `SubscriptionStore` (`@Observable`) owns: cached subscription status,
   cumulative free-usage-consumed counter, paywall presentation state,
-  and every analytics event for the subscription lifecycle (see
-  `docs/new-relic-analytics-setup.md`'s event taxonomy). Takes a
-  `SettingsStore` dependency to read the Remote-Config-sourced free-usage
-  limit, rather than running an independent Remote Config fetch cycle.
+  every analytics event for the subscription lifecycle (see
+  `docs/new-relic-analytics-setup.md`'s event taxonomy), and — if the app
+  has post-trial fair-use metering — the monthly usage counter/throttle
+  tier (see "Fair-use throttling for post-trial/subscribed usage"
+  below). Takes a `SettingsStore` dependency to read the Remote-Config-
+  sourced free-usage limit (and the fair-use thresholds/delays, if
+  applicable), rather than running an independent Remote Config fetch
+  cycle.
 - `isOverLimit(afterAdding:)` is the **single source of truth** for the
   limit rule — every gate (start-of-session check, live mid-session
   check) goes through it, never duplicates the arithmetic.
