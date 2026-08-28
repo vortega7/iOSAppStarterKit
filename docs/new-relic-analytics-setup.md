@@ -87,6 +87,7 @@ than needing a union of many event names:
 | `[FILL IN, e.g. SubscriptionLifecycle]` | `offered` / `signedUp` / `declined` / `renewed` / `notRenewed` / `pending` / `purchaseFailed` / `restoreFailed` / `productLoadFailed` / `trialReplayBlocked` | `SubscriptionStore` — **only** from `observeTransactionEvents()`'s stream for signedUp/renewed/notRenewed, never also from the `purchase()` return value, or a purchase this app instance drives gets double-counted (see `LESSONS_LEARNED.md` #6 for the related transaction-ID de-dup issue) |
 | `RemoteConfigSync` | `success: Bool` + one changed-flag per synced parameter | `SettingsStore.syncFromRemoteConfig()`, every fetch attempt |
 | `LegalAcceptance` | `termsAccepted` / `[any other consent]Accepted`, plus `acceptedVia: "onboarding"` vs `"reacceptance"` | `LegalAcceptanceStore`, whenever a gate is accepted |
+| `[FILL IN: usage-metering event, e.g. TranslationUsage/GenerationUsage]` | `secondsRecorded`/`unitsConsumed` (numeric) + `isSubscribed` (Bool) | The store owning entitlement, flushed on backgrounding — see "Usage metering" below |
 | `[FILL IN: the app's core feature error/status event, if applicable]` | | |
 
 **Known gap worth fixing from day one, not retrofitting later**: if
@@ -103,6 +104,48 @@ only ever accumulated into a local on-device counter (not telemetered)
 can't be aggregated or reported on at all. It's common to ship a v1
 without either of these and have to add them as a follow-up — build
 both in from the start instead.
+
+### Usage metering: batch on backgrounding, don't send one event per unit of usage
+
+Built and confirmed end-to-end in a real app (TranslationApp, 2026-08):
+sending one custom event per completed unit of usage (per recording, per
+generation, per API call) creates an unbounded, ever-growing event table
+for zero benefit — every question worth answering ("seconds per user
+this month," "total usage this week") is a `SUM`/`FACET` over the raw
+numeric attribute regardless of how many rows it's spread across.
+
+**Pattern**: accumulate usage into an in-memory (not persisted) buffer
+on the store that already owns entitlement/usage decisions — don't
+persist the buffer, and don't add a new store just for this. Flush the
+buffer as one event, with the accumulated total as the numeric
+attribute, only on an app-backgrounding transition (SwiftUI
+`scenePhase == .background`) — not per-unit-of-usage, and not on a
+periodic timer (keeps the reporting boundary singular and simple).
+Reset the buffer to zero after each flush, so the next flush reports
+only what's new, not a repeating cumulative total.
+
+**Accepted tradeoff, state it explicitly wherever this is documented**:
+a force-quit before the app is ever backgrounded loses that session's
+seconds from New Relic's view. This does **not** need to affect
+enforcement accuracy — keep the real, authoritative usage counter (the
+one that actually gates behavior) `UserDefaults`-persisted and written
+immediately on every unit of usage, entirely independent of the
+in-memory reporting buffer. New Relic's copy of the number is allowed to
+be eventually-consistent; the enforcement copy isn't.
+
+**Per-device identifier without real per-user identity yet**: if the
+app doesn't yet tie usage to a real account (no backend, subscriptions
+are device-local StoreKit entitlements), attribute usage to a
+self-generated, Keychain-persisted UUID rather than New Relic's own
+automatic per-install device ID — Keychain survives reinstall, an
+automatic device ID may not, and a Keychain UUID reads as a real stable
+identifier once accounts exist later. Set it once via
+`NewRelic.setUserId(_:)` at launch, before `NewRelic.start(...)`. If
+launch-sequencing between the app delegate and wherever the entitlement
+store gets constructed isn't guaranteed, have both call sites
+independently read-or-create the value against the same Keychain
+account — idempotent regardless of which runs first, and avoids needing
+to depend on that ordering at all.
 
 ## Dashboard-building notes
 

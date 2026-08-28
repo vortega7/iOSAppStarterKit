@@ -304,3 +304,67 @@ for the purchase flow" for the full detail.
 - **`curl` with a literal `[`/`]` in a query string** (e.g.
   `?filter[build]=...`) needs glob expansion disabled, or it fails with
   an opaque exit code.
+
+---
+
+## 17. Every test file that constructs a store must reset *all* of its `UserDefaults`-backed keys, not just the ones the current test touches
+
+Hit three separate times building one feature (a monthly usage counter +
+two new tunable settings on an existing store): adding a new
+`UserDefaults`-backed property to a store, then writing a test that sets
+it to a test value, silently broke *other, unrelated* tests in *other*
+test files — because `UserDefaults.standard` is real and shared across
+the whole test process, not per-test-isolated, and those other files'
+"fresh install" helper only reset the keys that existed *when that
+helper was written*.
+
+**Symptom**: a test that passed in isolation fails only when the full
+suite runs, with a value that looks like it leaked from nowhere (e.g. a
+`pipelineState` stuck in a throttled/waiting state in a test that never
+touches throttling at all).
+
+**Rule**: every test-file helper that constructs a store backed by
+`UserDefaults` must `removeObject(forKey:)` for **every** key that
+store persists, not only the keys that file's own tests set — even keys
+introduced by a completely different feature/PR. When you add a new
+`UserDefaults`-backed property anywhere, grep for every other test
+file's store-construction helper and add the same reset there, before
+assuming "I reset it in my own test file" is sufficient. This is easy
+to miss precisely because the helper you need to update usually looks
+unrelated to the feature you're adding.
+
+---
+
+## 18. A `.sheet { }` closure's content needs its `@Observable` stores re-injected explicitly — non-optional `@Environment` reads that work fine on iPhone/iPad can crash on "app runs on Mac" (Catalyst/"Designed for iPad")
+
+**Symptom hit for real, post-launch**: a build that worked correctly on
+iPhone and iPad crashed on Apple Silicon Mac (`EXC_BREAKPOINT`, a Swift
+`assertionFailure` inside `EnvironmentValues.subscript.getter`) the
+moment any of the app's `.sheet { }`-presented views tried to read a
+store via `@Environment(SomeStore.self)` (the non-optional form, which
+traps hard if the value isn't present).
+
+**Root cause**: those sheet-presented views relied on *inheriting* the
+`.environment(...)` values injected further up the view tree (typically
+at the composition root) rather than having them re-injected on the
+sheet's own content. That inheritance holds across a normal SwiftUI
+`.sheet` presentation on iPhone/iPad, but **not** across the
+macOS/Catalyst sheet-presentation bridge (`SheetBridge`/
+`PresentationHostingController`) — the sheet's content view hierarchy
+there doesn't automatically inherit environment values the same way.
+
+**Why this passes App Review anyway**: reviewers test on iPhone/iPad,
+not Mac, so this class of bug is invisible to standard review even when
+"supports Mac" is enabled in App Store Connect.
+
+**Fix**: explicitly re-inject every store a sheet's content needs,
+directly in the `.sheet { }` closure —
+`SomeSheetView().environment(storeA).environment(storeB)` — rather than
+relying on inheritance. Cheap and mechanical once identified; the cost
+is entirely in noticing it, since the failure mode only reproduces on
+an actual Mac (a real device or the "My Mac (Designed for iPad)" run
+destination in Xcode — the plain iOS Simulator doesn't catch it).
+**If "supports Mac" is enabled for a Universal/iPad-idiom app, verify
+every sheet presentation on an actual Mac destination before shipping**,
+not just iPhone/iPad — or disable Mac availability in App Store Connect
+until that verification happens.

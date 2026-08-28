@@ -177,6 +177,63 @@ binary.
   configuration instead; StoreKit Testing's simulated purchase flows
   aren't something `xcodebuild test` can drive deterministically.
 
+## Fair-use throttling for post-trial/subscribed usage
+
+If the product has a disclosed fair-use clause in its Terms of Use
+(e.g. "excessive use over N minutes/month will be limited") that
+applies **regardless of subscription status** — a paying subscriber's
+usage is still metered, not just the free trial's — this is a separate
+mechanism from the free-trial gate above, built and confirmed
+end-to-end in a real app (TranslationApp, 2026-08):
+
+- **Enforce as escalating throttling, never a hard block.** A soft
+  threshold adds a short artificial delay before the result is
+  delivered/played; a second, higher "hard" threshold increases that
+  delay further. A subscriber is never fully locked out — the paywall's
+  entire value proposition is "you're paying, so you keep working,"
+  and a hard block there would undermine that.
+- **A separate counter from the lifetime free-trial counter**, since
+  this one resets every calendar month rather than accumulating
+  forever. Track the month it currently represents as a `"yyyy-MM"`
+  string (year **and** month — a month-alone comparison incorrectly
+  treats e.g. January this year and January next year as the same
+  month) and roll the counter over whenever the current month no
+  longer matches. Make the "what time is it" source an injectable
+  closure on the owning store's initializer (defaulting to
+  `Date.init`), so tests can simulate crossing a month boundary without
+  waiting for a real one.
+- **Both thresholds and both delay amounts should be Remote-Config-tunable**,
+  not hardcoded — you won't know the right values until you have real
+  usage data, and a hardcoded value means a full app-review cycle to
+  adjust it later.
+- **The delay must actually block starting a new unit of work while
+  it's in effect**, not just add latency to the current one's output —
+  otherwise a throttled user can keep queuing new requests at full
+  speed and only feel the delay on results, never on their actual pace
+  of usage, which defeats the purpose. If the app has a state machine
+  gating new actions on an idle-like state, give the delay its own
+  distinct state (not the same state as "delivering a normal result")
+  so the delay window is both enforced correctly *and* rendered with
+  accurate status text — reusing an existing "in progress" state for
+  this works functionally but reads as misleading UI copy during the
+  wait (a "Playing…"-style label showing before anything has actually
+  started playing, discovered on real-device testing).
+- **This counter resets on app reinstall** if it's only
+  `UserDefaults`-backed (uninstall wipes `UserDefaults`), same as the
+  free-trial counter's gap above — but treat this as a *lower*-priority
+  gap than the free-trial one, deliberately, not an oversight: the
+  free-trial gate protects against getting the entire product for free
+  via repeated reinstalls (worth the Keychain-mirroring cost to fix);
+  a fair-use throttle only adds a few seconds of friction for an
+  already-paying subscriber, so a user motivated enough to reinstall
+  repeatedly just to dodge that friction is a low-value threat to
+  defend against. Decide this tradeoff explicitly for your product
+  rather than copying either answer blind.
+- Report actual usage to your analytics platform for this too — see
+  `docs/new-relic-analytics-setup.md`'s "Usage metering: batch on
+  backgrounding" section for the reporting-cadence pattern that pairs
+  with this.
+
 ## Known, accepted v1 gap: this is all client-side enforcement
 
 Every mechanism above is a UX layer, not real security enforcement — a
