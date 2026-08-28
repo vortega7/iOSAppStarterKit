@@ -279,6 +279,45 @@ not appear to expose an equivalent per-item action**. If the
 resubmission PATCH keeps 409ing after a build swap, stop polling it and
 resubmit through the web UI's per-item "Edit" affordance instead.
 
+## Diagnostic queries: investigating a stuck review or a subscription problem
+
+Beyond the upload/submit workflow above, the same JWT + `curl` pattern
+is genuinely useful for read-only investigation — e.g. a reviewer can't
+load your subscription, or you need to confirm what was actually
+submitted. All plain `GET`s, safe to run anytime:
+
+```bash
+# App's own record (confirms the app ID, bundle ID)
+curl -s -H "Authorization: Bearer $JWT" "https://api.appstoreconnect.apple.com/v1/apps?filter[bundleId]=<bundle-id>"
+
+# Subscription group -> subscriptions -> state (WAITING_FOR_REVIEW /
+# APPROVED / etc. — see the `state`-field gotcha above for what this
+# does and doesn't prove)
+curl -s -H "Authorization: Bearer $JWT" "https://api.appstoreconnect.apple.com/v1/apps/<APP_ID>/subscriptionGroups"
+curl -s -H "Authorization: Bearer $JWT" "https://api.appstoreconnect.apple.com/v1/subscriptionGroups/<GROUP_ID>/subscriptions"
+
+# Territory availability — confirms which countries/regions can
+# actually see and buy the subscription (useful when a reviewer or
+# tester in a specific region reports "product unavailable")
+curl -s -H "Authorization: Bearer $JWT" "https://api.appstoreconnect.apple.com/v1/subscriptions/<SUB_ID>/subscriptionAvailability"
+curl -s -H "Authorization: Bearer $JWT" "https://api.appstoreconnect.apple.com/v1/subscriptionAvailabilities/<SUB_ID>/availableTerritories?limit=200"
+
+# Review submission status for the app version currently under review
+curl -s -H "Authorization: Bearer $JWT" "https://api.appstoreconnect.apple.com/v1/apps/<APP_ID>/reviewSubmissions?limit=5"
+```
+
+**Real diagnostic use case**: a reviewer testing a brand-new app's
+*first-ever* subscription reported "Subscription product unavailable"
+repeatedly. These queries confirmed the subscription's territory
+availability and version-attachment were correctly configured on our
+side — which narrowed the cause down to a known, hard-to-avoid gap: a
+subscription that's never been approved once can be unreliably served
+by Apple's live product catalog to *any* caller (reviewers included),
+independent of anything in the app's own configuration. Confirming
+"our config is right" via these queries is what let us stop chasing a
+config problem that didn't exist and correctly treat it as a
+first-approval timing issue instead.
+
 ## Environment gotchas encountered doing all of the above
 
 See `LESSONS_LEARNED.md` #15 for the full list (disk space exhaustion
