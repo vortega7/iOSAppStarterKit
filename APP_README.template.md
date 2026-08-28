@@ -79,6 +79,31 @@ app. Confirm the block screen appears with no way to dismiss it, and
 that "Update Now" opens `app_store_url`. Set `minimum_app_version` back
 down afterward and confirm normal use resumes.
 
+## [FILL IN: delete this section if the app has no post-trial fair-use metering] Testing fair-use usage throttling
+
+See `docs/subscription-paywall-pattern.md`'s "Fair-use throttling for
+post-trial/subscribed usage" for the mechanism.
+
+| Parameter key | Type | Purpose |
+|---|---|---|
+| `[FILL IN: soft-threshold parameter name]` | Int (seconds) | "Soft" threshold — matches whatever's disclosed in the Terms of Use |
+| `[FILL IN: hard-threshold parameter name]` | Int (seconds) | "Hard" threshold, past which throttling increases further — never a block |
+| `[FILL IN: soft-delay parameter name]` | Int (seconds) | Extra delay once over the soft threshold |
+| `[FILL IN: hard-delay parameter name]` | Int (seconds) | Extra delay once over the hard threshold — replaces, not adds to, the soft delay |
+
+To test: set the soft threshold low (e.g. `10`) in the Firebase console,
+background/foreground the app to pick up the new value, then use the
+metered feature past that total. Confirm a delay appears before the
+result is delivered, the status text reflects waiting (not "in
+progress"/"done"), and a new unit of work can't be started during the
+delay. Lower the hard threshold too and confirm the delay increases
+further — and that the feature is still never blocked, even well past
+the hard threshold. Revert both values afterward. To confirm the
+analytics side: background the app (the flush only happens on
+backgrounding, not on a timer) and check for the usage-metering event
+with the expected quantity/subscription-status attributes, and a
+`userId` that stays stable across relaunches.
+
 ## Legal clickwrap + consent
 
 See `ARCHITECTURE.md`'s "Legal clickwrap + consent" for the mechanism.

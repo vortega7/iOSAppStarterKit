@@ -55,6 +55,13 @@ NewRelic.disableFeatures(NRMAFeatureFlags.NRFeatureFlag_WebViewInstrumentation)
 // specific reason to enable it — it ships every print/stdout line as
 // remote log data, an easy volume trap to miss.
 
+// If this app has any usage-metered feature, set a stable per-device/
+// per-user ID here, before `start` — see "Usage metering" below for
+// why, and for the read-or-create-against-a-shared-Keychain-account
+// pattern if the ID needs to be readable from more than one call site.
+// let deviceID = /* read-or-create from Keychain */
+// NewRelic.setUserId(deviceID)
+
 NewRelic.start(withApplicationToken: "[FILL IN: app token from the New Relic dashboard]")
 ```
 
@@ -69,11 +76,20 @@ capture for debugging).
 ## `AnalyticsRecording` protocol
 
 One minimal Domain protocol (`recordEvent(_:attributes:)`, plus
-`recordError` if the app wants handled-error reporting), one concrete
-`NewRelicAnalyticsService` implementation. Every store/ViewModel that
-needs to log an event takes this as an injected dependency — never calls
-`NewRelic.recordCustomEvent` directly — so it's fakeable in tests and
-swappable if the analytics vendor ever changes.
+`recordHandledError(_:attributes:)` if the app wants handled-error
+reporting), one concrete `NewRelicAnalyticsService` implementation.
+Every store/ViewModel that needs to log an event takes this as an
+injected dependency — never calls `NewRelic.recordCustomEvent` directly
+— so it's fakeable in tests and swappable if the analytics vendor ever
+changes.
+
+**Gotcha worth knowing before reaching for the SDK method by name**:
+for a native Swift `Error`, the correct New Relic call is
+`NewRelic.recordError(_ error: NSError, attributes:)` (it bridges a
+Swift `Error` to `NSError` automatically) — **not**
+`recordHandledException`, which expects an Objective-C `NSException`
+and is easy to reach for instead purely because the name reads closer
+to a Domain method called `recordHandledError`.
 
 ## Baseline custom-event taxonomy
 

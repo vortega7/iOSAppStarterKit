@@ -86,6 +86,29 @@ that.)
 - Manual/visual verification covers every targeted platform before a UI
   change is called done.
 
+## App Store subscription compliance
+
+[FILL IN: delete this whole section if the app has no subscription/IAP.
+Otherwise keep it — these are real App Review rejection reasons, not
+hypothetical.] See `docs/subscription-paywall-pattern.md`'s "App Store
+Review requirements for the purchase flow" and `LESSONS_LEARNED.md` #16
+for the incident this came from. Standing rules for any subscription/
+paywall change:
+- The subscription's title, length, price, and functional Privacy
+  Policy/Terms of Use links must be visible **directly in the purchase
+  flow view itself**, not just reachable elsewhere in the app.
+- The purchase flow must be reachable **without needing to exhaust any
+  usage limit first** — a settings-level "Subscribe" entry point (or
+  equivalent), not only a reactive paywall.
+- If the App Store Description references the Terms of Use, it must
+  contain an actual clickable URL, not prose referencing "our Terms" —
+  required whenever the app uses Apple's Standard EULA (no Custom EULA
+  configured), since then the Description itself is the only place that
+  link can live.
+- The App Store Description must not misrepresent data handling (e.g.
+  claiming data "never leaves your device" when a third-party API is
+  actually called) — see `docs/legal-compliance-checklist.md`.
+
 ## Before writing code
 
 For anything beyond a trivial, obviously-scoped fix: **plan first, get
