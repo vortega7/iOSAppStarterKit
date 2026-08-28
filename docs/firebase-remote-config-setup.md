@@ -35,8 +35,8 @@ Two categories of value, both centrally managed without an app release:
 
 ## Baseline parameters, exact names, and the business logic behind each
 
-Five parameters worth carrying forward as a baseline, all synced by one
-`syncFromRemoteConfig()` call. Four of the five are generic enough to
+Nine parameters worth carrying forward as a baseline, all synced by one
+`syncFromRemoteConfig()` call. All but the first are generic enough to
 reuse as-is on any subscription-gated, cloud-API-backed app — only the
 first is inherently product-specific. Treat this as an actual spec, not
 just a naming reference: it captures *why* each value exists and
@@ -139,6 +139,39 @@ Store listing URL, and it can stay wrong/placeholder harmlessly until
 `minimum_app_version` is ever actually raised above the current build
 for the first time.
 
+### 6. `[FILL IN: e.g. max_seconds_translation_per_month]` (Number) — post-trial/subscribed fair-use "soft" threshold
+
+**Only applicable if the disclosed fair-use clause in the Terms of Use
+applies regardless of subscription status** — see
+`docs/subscription-paywall-pattern.md`'s "Fair-use throttling for
+post-trial/subscribed usage" for the full design. Skip parameters 6–9
+entirely if this app's usage limit is purely a free-trial gate with no
+ongoing post-subscription metering.
+
+**Business logic**: the threshold, in the app's usage unit, past which
+`.throttled` tier begins. Should match whatever's actually disclosed in
+the Terms of Use exactly — this default is never more permissive than
+what's been disclosed to users.
+
+### 7. `[FILL IN: e.g. hard_seconds_translation_per_month]` (Number) — fair-use "hard" threshold
+
+**Business logic**: a second, higher threshold past which throttling
+increases further (`.heavilyThrottled` tier) — never a full block, even
+here. Must be strictly greater than parameter 6.
+
+### 8. `[FILL IN: e.g. throttled_playback_delay_seconds]` (Number) — soft-tier delay
+
+**Business logic**: the artificial delay (in seconds) added before a
+result is delivered once over the soft threshold. A small, barely-
+noticeable starting value is reasonable until there's real usage data to
+calibrate against.
+
+### 9. `[FILL IN: e.g. heavily_throttled_playback_delay_seconds]` (Number) — hard-tier delay
+
+**Business logic**: the delay once over the hard threshold — this
+*replaces*, not adds to, parameter 8's delay. Should be noticeably
+longer than the soft-tier delay so the escalation is perceptible.
+
 ### Suggested generic parameter table for a new app
 
 | Parameter key | Type | Default until first fetch |
@@ -148,6 +181,10 @@ for the first time.
 | `free_trial_cooldown_days` | Number | `10` |
 | `minimum_app_version` | String | `"0.0.0"` |
 | `app_store_url` | String | `""` |
+| `[FILL IN: fair-use soft threshold]` (skip 6–9 if no post-trial metering — see #6) | Number | `[FILL IN, matches the disclosed Terms of Use clause]` |
+| `[FILL IN: fair-use hard threshold]` | Number | `[FILL IN, > the soft threshold]` |
+| `[FILL IN: soft-tier delay]` | Number | `[FILL IN, a small starting value]` |
+| `[FILL IN: hard-tier delay]` | Number | `[FILL IN, noticeably larger than the soft delay]` |
 
 ## The sync pattern
 
